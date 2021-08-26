@@ -1,0 +1,8 @@
+{
+  "name": "nativebase-codemod",
+  "version": "1.0.0",
+  "main": "index.js",
+  "bin": "index.js",
+  "author": "Aditya Jamuar",
+  "license": "MIT"
+}
