@@ -4,5 +4,8 @@
   "main": "index.js",
   "bin": "index.js",
   "author": "Aditya Jamuar",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "jscodeshift-helper": "^1.1.0"
+  }
 }
