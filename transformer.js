@@ -25,9 +25,11 @@ export default (fileInfo, api) => {
       const { node } = nodePath;
 
       console.log("%c &*& node.name.name", "color: #10b981;", node.name.name);
-      // console.log('MYLOG: node: ', node);
       if (node.name.name === "lineHeight") {
-        node.value.value = "8";
+        // node.value.value = "8";
+        node.value.expression.value = "8";
+        node.value.expression.raw = "8";
+        console.log("MYLOG: node: ", node);
       }
 
       // change to our new prop
