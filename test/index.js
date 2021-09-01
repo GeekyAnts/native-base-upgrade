@@ -1,7 +1,8 @@
 import { Box } from "native-base";
+const lineHeight = "8";
 
 const Test = () => {
-  return <Box lineHeight={"8"}>Hello World</Box>;
+  return <Box lineHeight={lineHeight}>Hello World</Box>;
 };
 
 export default Test;

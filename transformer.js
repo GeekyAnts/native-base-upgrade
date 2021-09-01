@@ -24,12 +24,18 @@ export default (fileInfo, api) => {
       // console.log('MYLOG: nodePath: ', nodePath);
       const { node } = nodePath;
 
-      console.log("%c &*& node.name.name", "color: #10b981;", node.name.name);
+      // babelParser.parseExpression(code, [options]);
+
       if (node.name.name === "lineHeight") {
         // node.value.value = "8";
-        node.value.expression.value = "8";
-        node.value.expression.raw = "8";
-        console.log("MYLOG: node: ", node);
+        console.log("%c &*& node.name.name", "color: #10b981;", node);
+
+        // change logic
+        // node.value.expression.value = "8";
+        // node.value.expression.raw = "8";
+        // console.log("MYLOG: node: ", node);
+
+        // if ()
       }
 
       // change to our new prop
