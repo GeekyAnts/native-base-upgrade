@@ -11,7 +11,7 @@ const { exec } = require("child_process");
 // });
 
 exec(
-  "node ./node_modules/.bin/jscodeshift -t ./extend-theme-transformer.js ./test/app.js",
+  "node ./node_modules/.bin/jscodeshift -t ./extend-theme-transformer-v3.js ./test/app.js",
   (err, stdout) => {
     if (err) {
       console.error(err);
