@@ -5,11 +5,8 @@
   "bin": "index.js",
   "author": "Aditya Jamuar",
   "license": "MIT",
-  "devDependencies": {
-    "@babel/generator": "^7.15.0"
-  },
   "dependencies": {
-    "@babel/parser": "^7.15.3",
-    "jscodeshift": "^0.13.0"
+    "jscodeshift": "^0.13.0",
+    "jscodeshift-helper": "^1.1.0"
   }
 }

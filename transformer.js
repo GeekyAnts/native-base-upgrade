@@ -1,52 +1,46 @@
-// Replacing props with type
+import config from "./config.json";
+const describe = require("jscodeshift-helper").describe;
 
 export default (fileInfo, api) => {
   const j = api.jscodeshift;
 
   const root = j(fileInfo.source);
-
-  // finding Box
-  const Box = root.find(j.JSXOpeningElement, {
+  const JSXElement = root.find(j.JSXOpeningElement, {
     name: {
       type: "JSXIdentifier",
-      name: "Box",
     },
   });
 
-  // console.log('MYLOG: Box: ', Box);
-
-  // find bg in Box
-  const updatedBox = Box.find(j.JSXAttribute, {
+  const updatedJSXElement = JSXElement.find(j.JSXAttribute, {
     type: "JSXAttribute",
   })
     .replaceWith((nodePath) => {
-      // get the underlying Node
-      // console.log('MYLOG: nodePath: ', nodePath);
       const { node } = nodePath;
 
-      // babelParser.parseExpression(code, [options]);
+      if (config[node.name.name]) {
+        let propNode = config[node.name.name];
+        let value = undefined;
 
-      if (node.name.name === "lineHeight") {
-        // node.value.value = "8";
-        console.log("%c &*& node.name.name", "color: #10b981;", node);
+        if (node.value.type === "Literal") {
+          value = node.value.value;
+        } else if (node.value.type === "JSXExpressionContainer") {
+          value = node.value.expression.value;
+        }
 
-        // change logic
-        // node.value.expression.value = "8";
-        // node.value.expression.raw = "8";
-        // console.log("MYLOG: node: ", node);
+        if (propNode["valueMap"] && propNode["valueMap"][value]) {
+          value = propNode["valueMap"][value];
+        } else {
+          if (!value.endsWith("px")) value += "px";
+        }
 
-        // if ()
+        const newNode = j.literal(value);
+        node.value = newNode;
       }
 
-      // change to our new prop
-      // node.value.value = 'red.400';
-      // replaceWith should return a Node, not a NodePath
+      describe(node);
       return node;
     })
     .toSource();
 
-  // console.log('MYLOG:Box: ', Box);
-  console.log("MYLOG: updatedBox: ", updatedBox);
-
-  return updatedBox;
+  return updatedJSXElement;
 };

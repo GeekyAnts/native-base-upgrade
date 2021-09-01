@@ -1480,3 +1480,7 @@ write-file-atomic@^2.3.0:
     graceful-fs "^4.1.11"
     imurmurhash "^0.1.4"
     signal-exit "^3.0.2"
+jscodeshift-helper@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/jscodeshift-helper/-/jscodeshift-helper-1.1.0.tgz#7ed28b576021517452b938ee02e4edc799c1cbf7"
+  integrity sha1-ftKLV2AhUXRSuTjuAuTtx5nBy/c=
