@@ -84,13 +84,30 @@ export default (fileInfo, api) => {
       });
 
       const callExpressionLength = callExpression.length;
-
+      console.log("hello");
       if (callExpressionLength) {
-        const output = callExpression
-          .find(j.ObjectExpression)
-          .forEach((node) => {
+        // const output = callExpression.find(j.ObjectExpression);
+
+        // .forEach((node) => {
+        //     console.log(node);
+        //     // node.insertBefore(`${oldTheme}`);
+        //   });
+
+        callExpression.find(j.ObjectExpression).filter((node, index) => {
+          if (
+            node.parent.value.type === "CallExpression" &&
+            node.parent.value.callee.name === localNameExtendTheme &&
+            index === 0
+          ) {
             node.insertBefore(`${oldTheme}`);
-          });
+          }
+        });
+        // console.log(callExpressionLength, output.length);
+        // const output = callExpression.forEach((node) => {
+        //   // const objectExpression = node.parent.find(j.ObjectExpression);
+        //   // console.log(node.parent);
+        //   // node.insertBefore(`${oldTheme}`);
+        // });
       }
     }
   }
@@ -101,6 +118,10 @@ export default (fileInfo, api) => {
         name: "NativeBaseProvider",
       },
     });
+
+    if (nativeBaseProviderJSX.length === 0) {
+      return;
+    }
 
     const themeAttribute = nativeBaseProviderJSX.find(j.JSXAttribute, {
       name: { name: "theme" },
@@ -114,7 +135,8 @@ export default (fileInfo, api) => {
       //
 
       const imports = root.find(j.ImportDeclaration);
-      imports.insertAfter(`const theme_v3 = extendTheme(${oldTheme});
+      const lastImport = imports.at(imports.length - 1).get();
+      lastImport.insertAfter(`const theme_v3 = extendTheme(${oldTheme});
       `);
 
       nativeBaseProviderJSX.replaceWith(
