@@ -88,7 +88,7 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
 async function updateFiles(srcPath) {
   return new Promise((resolve, reject) => {
     exec(
-      `node ${__dirname}/node_modules/.bin/jscodeshift -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
+      `node ${__dirname}/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
       (err, stdout) => {
         if (err) {
           console.log("Error: ", err);
@@ -143,7 +143,7 @@ function getNextUpgradableVersion(currentVersion) {
       type: "text",
       name: "value",
       message: `What's your src/ location?`,
-      initial: "src/",
+      initial: "",
     });
 
     await updateNativeBaseVersion(packageManager.value, nextVersion);
