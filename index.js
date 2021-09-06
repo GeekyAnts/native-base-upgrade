@@ -42,9 +42,8 @@ async function getCurrentVersion() {
           reject(err);
         }
 
-        console.log(stdout);
-
-        const currentVersion = stdout.trim().split("@")[2];
+        const output = stdout.trim();
+        const currentVersion = output.slice(output.lastIndexOf("@") + 1);
         resolve(currentVersion);
       }
     );
