@@ -1,3 +1,6 @@
+const path = require("path");
+const fs = require("fs");
+
 const oldThemeObj = {
   lineHeights: {
     none: 1,
@@ -42,6 +45,26 @@ const oldThemeObj = {
   },
 };
 
+const setDirtyFile = (fileInfo) => {
+  fs.readFile(path.join(__dirname, "temp.txt"), "utf8", function(err, data) {
+    if (err) {
+      console.error(err);
+    }
+
+    if (!data) {
+      data = "";
+    }
+
+    const content = data + fileInfo.path;
+    fs.writeFile(path.join(__dirname, "temp.txt"), content, (err) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+    });
+  });
+};
+
 const oldTheme = JSON.stringify(oldThemeObj, null, 2);
 // exit
 export default (fileInfo, api) => {
@@ -51,6 +74,7 @@ export default (fileInfo, api) => {
 
   modifyExtendTheme();
   modifyProvider();
+
   function modifyExtendTheme() {
     // extendTheme import
     let localNameExtendTheme = "extendTheme";
@@ -84,7 +108,6 @@ export default (fileInfo, api) => {
       });
 
       const callExpressionLength = callExpression.length;
-      console.log("hello");
       if (callExpressionLength) {
         // const output = callExpression.find(j.ObjectExpression);
 
@@ -100,14 +123,9 @@ export default (fileInfo, api) => {
             index === 0
           ) {
             node.insertBefore(`${oldTheme}`);
+            setDirtyFile(fileInfo);
           }
         });
-        // console.log(callExpressionLength, output.length);
-        // const output = callExpression.forEach((node) => {
-        //   // const objectExpression = node.parent.find(j.ObjectExpression);
-        //   // console.log(node.parent);
-        //   // node.insertBefore(`${oldTheme}`);
-        // });
       }
     }
   }
@@ -142,6 +160,8 @@ export default (fileInfo, api) => {
       nativeBaseProviderJSX.replaceWith(
         `<NativeBaseProvider theme={theme_v3}>`
       );
+
+      setDirtyFile(fileInfo);
     } else {
       // if empty theme
       // const themeAttrNode = themeAttribute.nodes()[0];

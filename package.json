@@ -6,6 +6,7 @@
   "author": "Aditya Jamuar",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^4.1.2",
     "jscodeshift": "^0.13.0",
     "prompts": "^2.4.1"
   },
