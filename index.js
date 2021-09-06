@@ -105,6 +105,7 @@ function getNextUpgradableVersion(currentVersion) {
 (async () => {
   const currentVersion = await getCurrentVersion();
   const nextVersion = getNextUpgradableVersion(currentVersion);
+  console.log(`Current Version: ${currentVersion}`);
 
   if (!nextVersion) {
     console.warn("No version to upgrade!");
