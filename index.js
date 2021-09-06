@@ -33,6 +33,7 @@ async function getCurrentVersion() {
   // var pjson = require(path + "package.json");
 
   return new Promise((resolve, reject) => {
+    console.log(projectWorkingDirectory);
     exec(
       `cd ${projectWorkingDirectory} && npx npm ls native-base`,
       (err, stdout) => {
@@ -40,6 +41,9 @@ async function getCurrentVersion() {
           console.log("Error: ", err);
           reject(err);
         }
+
+        console.log(stdout);
+
         const currentVersion = stdout.trim().split("@")[2];
         resolve(currentVersion);
       }
