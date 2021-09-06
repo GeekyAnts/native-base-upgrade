@@ -1,5 +1,5 @@
 {
-  "name": "nativebase-upgrade",
+  "name": "native-base-upgrade",
   "version": "1.0.0",
   "main": "index.js",
   "bin": "index.js",
