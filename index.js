@@ -2,7 +2,9 @@
 
 const { exec, execSync } = require("child_process");
 var prompts = require("prompts");
+const { nextVersions } = require("./next-versions");
 
+const projectWorkingDirectory = process.cwd();
 // exec("npx jscodeshift -t ./transformer.js ./test/index.js", (err, stdout) => {
 //   if (err) {
 //     console.error(err);
@@ -25,25 +27,90 @@ var prompts = require("prompts");
 // process.exit(0);
 
 // /
-function getCurrentVersion(path = "./") {
-  var pjson = require(path + "package.json");
-  return;
+
+// console.log(__dirname, "hello dir", process.cwd());
+async function getCurrentVersion() {
+  // var pjson = require(path + "package.json");
+
+  return new Promise((resolve, reject) => {
+    exec(
+      `cd ${projectWorkingDirectory} && npx npm ls native-base`,
+      (err, stdout) => {
+        if (err) {
+          console.log("Error: ", err);
+          reject(err);
+        }
+        const currentVersion = stdout.trim().split("@")[2];
+        resolve(currentVersion);
+      }
+    );
+  });
+}
+
+async function updateNativeBaseVersion(packageManager, nextVersion) {
+  return new Promise((resolve, reject) => {
+    if (packageManager === "yarn") {
+      //
+      exec(
+        `yarn add --modules-folder ${projectWorkingDirectory}/node_modules native-base@${nextVersion}`,
+        (err, stdout) => {
+          if (err) {
+            console.log("Error: ", err);
+            reject(err);
+          }
+          console.log(stdout);
+          console.log("Updated native-base");
+
+          resolve();
+        }
+      );
+    } else {
+      //
+      exec(
+        `npm install --prefix ${projectWorkingDirectory} native-base@${nextVersion}`,
+        (err, stdout) => {
+          if (err) {
+            console.log("Error: ", err);
+            return;
+          }
+          console.log(stdout);
+          console.log("Updated native-base");
+          resolve();
+        }
+      );
+    }
+  });
+}
+
+async function updateFiles(srcPath) {
+  return new Promise((resolve, reject) => {
+    exec(
+      `node ${__dirname}/node_modules/.bin/jscodeshift -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
+      (err, stdout) => {
+        if (err) {
+          console.log("Error: ", err);
+          reject(err);
+        }
+        console.log(stdout);
+        resolve();
+      }
+    );
+  });
 }
 
 function getNextUpgradableVersion(currentVersion) {
-  // return undefined;
-  return "3.2.0-alpha.3";
-}
-
-// const currentVersion = getCurrentVersion(__dirname + "/../NativeBase/");
-const currentVersion = "3.1.0";
-const nextVersion = getNextUpgradableVersion(currentVersion);
-
-if (!nextVersion) {
-  console.warn("No version to upgrade!\n");
+  return nextVersions[currentVersion];
 }
 
 (async () => {
+  const currentVersion = await getCurrentVersion();
+  const nextVersion = getNextUpgradableVersion(currentVersion);
+
+  if (!nextVersion) {
+    console.warn("No version to upgrade!");
+    process.exit();
+  }
+
   const updgradableVersions = [];
 
   const response = await prompts({
@@ -72,44 +139,14 @@ if (!nextVersion) {
       type: "text",
       name: "value",
       message: `What's your src/ location?`,
-      initial: "./",
+      initial: "src/",
     });
 
-    // if (packageManager.value === "yarn") {
-    //   //
-    //   execSync(`yarn add native-base@${nextVersion}`, (err, stdout) => {
-    //     if (err) {
-    //       console.log("Error: ", err);
+    await updateNativeBaseVersion(packageManager.value, nextVersion);
 
-    //       return;
-    //     }
-    //     console.log(stdout);
-    //     console.log("Updated native-base");
-    //   });
-    // } else {
-    //   //
-    //   execSync(`npm install native-base@${nextVersion}`, (err, stdout) => {
-    //     if (err) {
-    //       console.log("Error: ", err);
-    //       return;
-    //     }
-    //     console.log(stdout);
-    //     console.log("Updated native-base");
-    //   });
-    // }
+    console.log(projectWorkingDirectory, response.value);
+    await updateFiles(projectWorkingDirectory + "/" + response.value);
 
-    exec(
-      "node ./node_modules/.bin/jscodeshift -t ./extend-theme-transformer-v3.js ./test",
-      (err, stdout) => {
-        console.log("hello 111");
-
-        if (err) {
-          console.log("Error: ", err);
-          return;
-        }
-        console.log(stdout);
-        console.log("Files updated");
-      }
-    );
+    console.log("Files updated");
   }
 })();
