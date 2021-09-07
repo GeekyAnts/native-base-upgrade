@@ -1,19 +1,20 @@
 #! /usr/bin/env node
 
-const { exec, execSync } = require("child_process");
 var prompts = require("prompts");
 const { nextVersions } = require("./next-versions");
 const fs = require("fs");
 const path = require("path");
 const semver = require("semver");
 const chalk = require("chalk");
-
+var shell = require("shelljs");
+var exec = shell.exec;
 const projectWorkingDirectory = process.cwd();
 
 async function getCurrentVersion() {
   return new Promise((resolve, reject) => {
     exec(
-      `cd ${projectWorkingDirectory} && npx npm ls native-base`,
+      `npx npm ls native-base`,
+      { cwd: projectWorkingDirectory, silent: true },
       (err, stdout) => {
         if (err) {
           reject(err);
@@ -32,25 +33,29 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
     if (packageManager === "yarn") {
       //
       const yarnAddCommand = `yarn add native-base@${nextVersion}`;
-      exec(yarnAddCommand, { cwd: projectWorkingDirectory }, (err, stdout) => {
-        if (err) {
-          console.log(err);
+      exec(
+        yarnAddCommand,
+        { cwd: projectWorkingDirectory, silent: true },
+        (err, stdout) => {
+          if (err) {
+            console.log(err);
 
-          console.log(
-            `\n${chalk.yellow(`${chalk.bold(yarnAddCommand)} failed!`)}`
-          );
-          reject(err);
+            console.log(
+              `\n${chalk.yellow(`${chalk.bold(yarnAddCommand)} failed!`)}`
+            );
+            reject(err);
+          }
+          console.log(stdout);
+          resolve();
         }
-        console.log(stdout);
-        resolve();
-      });
+      );
     } else {
       //
       const npmInstallCommand = `npm install native-base@${nextVersion}`;
 
       exec(
         npmInstallCommand,
-        { cwd: projectWorkingDirectory },
+        { cwd: projectWorkingDirectory, silent: true },
         (err, stdout) => {
           if (err) {
             console.log(err);
@@ -71,6 +76,7 @@ async function updateFiles(srcPath) {
   return new Promise((resolve, reject) => {
     exec(
       `node ${__dirname}/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
+      { silent: true },
       (err, stdout) => {
         if (err) {
           console.log("Error: ", err);
@@ -116,6 +122,21 @@ function cleanTemp() {
   });
 }
 
+async function checkGitAvailable() {
+  return new Promise((resolve, reject) => {
+    exec(
+      `git rev-parse --is-inside-work-tree`,
+      { cwd: projectWorkingDirectory, silent: true },
+      (err, stdout) => {
+        if (err) {
+          reject();
+        }
+        resolve(true);
+      }
+    );
+  });
+  //git rev-parse --is-inside-work-tree
+}
 // main
 
 async function fetchUserCurrentVersion() {
@@ -140,17 +161,50 @@ async function fetchUserCurrentVersion() {
 (async () => {
   cleanTemp();
   let currentVersion;
+  let gitAvailable = false;
+
   try {
     currentVersion = await getCurrentVersion();
   } catch (err) {
     console.log(
       chalk.red(`Failed to fetch your current version of native-base!`)
     );
-
     currentVersion = await fetchUserCurrentVersion();
   }
 
+  try {
+    gitAvailable = await checkGitAvailable();
+  } catch (err) {
+    //
+  }
+
   const nextVersion = getNextUpgradableVersion(currentVersion);
+
+  if (!gitAvailable) {
+    console.log(
+      chalk.yellow(
+        `We couldn't find a git repository in your project directory.\nIt's recommended to back up your project before proceeding.`
+      )
+    );
+  } else {
+    console.log(
+      chalk.yellow(
+        `It's recommended to commit all your changes before proceeding, so you can revert the changes made by this command if necessary.`
+      )
+    );
+  }
+
+  const continueResponse = await prompts({
+    type: "confirm",
+    name: "value",
+    message: `Do you want continue?`,
+    initial: true,
+  });
+
+  if (!continueResponse.value) {
+    process.exit(0);
+  }
+
   console.log(chalk.bold(`Current Version: `) + chalk.green(currentVersion));
 
   if (!nextVersion) {
