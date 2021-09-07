@@ -46,23 +46,19 @@ const oldThemeObj = {
 };
 
 const setDirtyFile = (fileInfo) => {
-  fs.readFile(path.join(__dirname, "temp.txt"), "utf8", function(err, data) {
-    if (err) {
-      console.error(err);
-    }
-
-    if (!data) {
-      data = "";
-    }
-
-    const content = data + fileInfo.path;
-    fs.writeFile(path.join(__dirname, "temp.txt"), content, (err) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-    });
+  const data = fs.readFileSync(path.join(__dirname, "temp.txt"), {
+    encoding: "utf8",
+    flag: "r",
   });
+  let dataString = data.toString();
+
+  if (!dataString) {
+    dataString = "";
+  }
+
+  const content = dataString + fileInfo.path + "\n";
+
+  fs.writeFileSync(path.join(__dirname, "temp.txt"), content);
 };
 
 const oldTheme = JSON.stringify(oldThemeObj, null, 2);
@@ -192,7 +188,7 @@ export default (fileInfo, api) => {
       root
         .find(j.ImportDeclaration)
         .get()
-        .insertBefore('import {extendTheme} from "native-base";');
+        .insertBefore('import { extendTheme } from "native-base";');
     }
   }
   return root.toSource();

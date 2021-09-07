@@ -179,6 +179,7 @@ try {
       console.log(
         chalk.red(`Failed to fetch your current version of native-base!`)
       );
+
       currentVersion = await fetchUserCurrentVersion();
     }
 

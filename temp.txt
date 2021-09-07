@@ -1,1 +1,12 @@
-/Users/suraj/Sites/projects/nativebase-codemod/test/app.js
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/theme/Custom/Basic.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/theme/Custom/CustomizingTheme.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/theme/Custom/CustomizingBase.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/theme/Mode/DefaultMode.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/hooks/useSafeArea/Fixed.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/hooks/useColorMode/Basic.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/hooks/useColorModeValue/Basic.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/hooks/useSafeArea/Flexible.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/components/composites/Fab/Kitchensink-Basic.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/hooks/useSafeArea/Hook.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/components/composites/Fab/Kitchensink-CustomPosition.tsx
+/Users/suraj/Sites/projects/NativeBase/example/storybook/stories/components/composites/Fab/Kitchensink-Placement.tsx
