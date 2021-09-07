@@ -83,6 +83,26 @@ async function updateFiles(srcPath) {
   });
 }
 
+function printSuccessMessage(nextVersion) {
+  fs.readFile(path.join(__dirname, "temp.txt"), (err, data) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log(
+      chalk.bold(`native-base upgraded to ` + chalk.green(nextVersion))
+    );
+
+    console.log(chalk.bold("\nModified files: "));
+    console.log(chalk.cyan(data.toString()));
+
+    console.log(
+      chalk.yellow(
+        `\nIt is recommended for you to verify the changes made to these files by the codemod. Happy coding!`
+      )
+    );
+  });
+}
 function getNextUpgradableVersion(currentVersion) {
   return nextVersions[currentVersion];
 }
@@ -96,6 +116,27 @@ function cleanTemp() {
   });
 }
 
+// main
+
+async function fetchUserCurrentVersion() {
+  const response = await prompts({
+    type: "text",
+    name: "value",
+    message: `Enter your native-base version (e.g, ${chalk.gray("3.0.7")})`,
+    initial: "",
+  });
+
+  if (
+    !response.value ||
+    !semver.valid(response.value) // '1.2.3'
+  ) {
+    console.log(chalk.red(`Invalid version! Please try again!`));
+    process.exit(0);
+    // return fetchUserCurrentVersion();
+  } else {
+    return response.value;
+  }
+}
 (async () => {
   cleanTemp();
   let currentVersion;
@@ -106,32 +147,12 @@ function cleanTemp() {
       chalk.red(`Failed to fetch your current version of native-base!`)
     );
 
-    const response = await prompts({
-      type: "text",
-      name: "value",
-      message: `Enter your native-base version (e.g, ${chalk.gray("3.0.7")})`,
-      initial: "",
-    });
-
-    if (
-      !response.value ||
-      !semver.valid(response.value) // '1.2.3'
-    ) {
-      console.log(chalk.red(`Invalid version! Please try again!`));
-      process.exit(1);
-    } else {
-      currentVersion = response.value;
-    }
+    currentVersion = await fetchUserCurrentVersion();
   }
 
   const nextVersion = getNextUpgradableVersion(currentVersion);
   console.log(chalk.bold(`Current Version: `) + chalk.green(currentVersion));
 
-  // no version available on npm
-
-  // no code mode available
-
-  // available
   if (!nextVersion) {
     console.warn(
       chalk.yellow(`No codemod available to for v${currentVersion}`)
@@ -162,14 +183,6 @@ function cleanTemp() {
     }
 
     process.exit(0);
-
-    //   // var keys = [];
-    //   // for (var k in nextVersions) keys.push(k);
-    //   // console.warn("");
-    //   // console.warn("Available versions for upgrade: " + keys);
-    //   // console.warn(
-    //   //   "Upgrade native-base manually to any above version to run this script!"
-    //   // );
   }
 
   const updgradableVersions = [];
@@ -177,7 +190,9 @@ function cleanTemp() {
   const response = await prompts({
     type: "confirm",
     name: "value",
-    message: `Upgrade to ${nextVersion} using codemod, Can you confirm?`,
+    message: `Upgrade to ${chalk.cyan(
+      nextVersion
+    )} using codemod, Can you confirm?`,
     initial: true,
   });
 
@@ -208,23 +223,6 @@ function cleanTemp() {
     await updateNativeBaseVersion(packageManager.value, nextVersion);
     await updateFiles(path.join(projectWorkingDirectory, response.value));
 
-    fs.readFile(path.join(__dirname, "temp.txt"), (err, data) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      console.log(
-        chalk.bold(`native-base upgraded to ` + chalk.green(nextVersion))
-      );
-
-      console.log(chalk.bold("\nModified files: "));
-      console.log(chalk.cyan(data.toString()));
-
-      console.log(
-        chalk.yellow(
-          `\nIt is recommended for you to verify the changes made to these files by the codemod. Happy coding!`
-        )
-      );
-    });
+    printSuccessMessage(nextVersion);
   }
 })();
