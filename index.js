@@ -158,64 +158,97 @@ async function fetchUserCurrentVersion() {
     return response.value;
   }
 }
-(async () => {
-  cleanTemp();
-  let currentVersion;
-  let gitAvailable = false;
 
-  try {
-    currentVersion = await getCurrentVersion();
-  } catch (err) {
-    console.log(
-      chalk.red(`Failed to fetch your current version of native-base!`)
-    );
-    currentVersion = await fetchUserCurrentVersion();
-  }
+try {
+  (async () => {
+    cleanTemp();
+    let currentVersion;
+    let gitAvailable = false;
 
-  try {
-    gitAvailable = await checkGitAvailable();
-  } catch (err) {
-    //
-  }
+    try {
+      currentVersion = await getCurrentVersion();
+    } catch (err) {
+      console.log(
+        chalk.red(`Failed to fetch your current version of native-base!`)
+      );
+      currentVersion = await fetchUserCurrentVersion();
+    }
 
-  const nextVersion = getNextUpgradableVersion(currentVersion);
+    try {
+      gitAvailable = await checkGitAvailable();
+    } catch (err) {
+      //
+    }
 
-  if (!gitAvailable) {
-    console.log(
-      chalk.yellow(
-        `We couldn't find a git repository in your project directory.\nIt's recommended to back up your project before proceeding.`
-      )
-    );
-  } else {
-    console.log(
-      chalk.yellow(
-        `It's recommended to commit all your changes before proceeding, so you can revert the changes made by this command if necessary.`
-      )
-    );
-  }
+    const nextVersion = getNextUpgradableVersion(currentVersion);
 
-  const continueResponse = await prompts({
-    type: "confirm",
-    name: "value",
-    message: `Do you want continue?`,
-    initial: true,
-  });
+    if (!gitAvailable) {
+      console.log(
+        chalk.yellow(
+          `We couldn't find a git repository in your project directory.\nIt's recommended to back up your project before proceeding.`
+        )
+      );
+    } else {
+      console.log(
+        chalk.yellow(
+          `It's recommended to commit all your changes before proceeding, so you can revert the changes made by this command if necessary.`
+        )
+      );
+    }
 
-  if (!continueResponse.value) {
-    process.exit(0);
-  }
+    const continueResponse = await prompts({
+      type: "confirm",
+      name: "value",
+      message: `Do you want continue?`,
+      initial: true,
+    });
 
-  console.log(chalk.bold(`Current Version: `) + chalk.green(currentVersion));
+    if (!continueResponse.value) {
+      process.exit(0);
+    }
 
-  if (!nextVersion) {
-    console.warn(
-      chalk.yellow(`No codemod available to for v${currentVersion}`)
-    );
+    console.log(chalk.bold(`Current Version: `) + chalk.green(currentVersion));
+
+    if (!nextVersion) {
+      console.warn(
+        chalk.yellow(`No codemod available to for v${currentVersion}`)
+      );
+
+      const response = await prompts({
+        type: "confirm",
+        name: "value",
+        message: `Do you want to upgrade native-base to latest version?`,
+        initial: true,
+      });
+
+      if (response.value === true) {
+        const packageManager = await prompts({
+          type: "select",
+          name: "value",
+          message: "Update native-base using ",
+          choices: [
+            {
+              title: "yarn",
+              value: "yarn",
+            },
+            { title: "npm", value: "npm" },
+          ],
+          initial: 0,
+        });
+        await updateNativeBaseVersion(packageManager.value, "latest");
+      }
+
+      process.exit(0);
+    }
+
+    const updgradableVersions = [];
 
     const response = await prompts({
       type: "confirm",
       name: "value",
-      message: `Do you want to upgrade native-base to latest version?`,
+      message: `Upgrade to ${chalk.cyan(
+        nextVersion
+      )} using codemod, Can you confirm?`,
       initial: true,
     });
 
@@ -233,50 +266,24 @@ async function fetchUserCurrentVersion() {
         ],
         initial: 0,
       });
-      await updateNativeBaseVersion(packageManager.value, "latest");
+
+      const response = await prompts({
+        type: "text",
+        name: "value",
+        message: `Relative path to your source folder (${chalk.yellow(
+          "node_modules will be ignored"
+        )}) (e.g, ${chalk.gray("src/")}, ${chalk.gray(".")})`,
+        initial: "",
+      });
+
+      await updateNativeBaseVersion(packageManager.value, nextVersion);
+      await updateFiles(path.join(projectWorkingDirectory, response.value));
+
+      printSuccessMessage(nextVersion);
     }
-
-    process.exit(0);
-  }
-
-  const updgradableVersions = [];
-
-  const response = await prompts({
-    type: "confirm",
-    name: "value",
-    message: `Upgrade to ${chalk.cyan(
-      nextVersion
-    )} using codemod, Can you confirm?`,
-    initial: true,
-  });
-
-  if (response.value === true) {
-    const packageManager = await prompts({
-      type: "select",
-      name: "value",
-      message: "Update native-base using ",
-      choices: [
-        {
-          title: "yarn",
-          value: "yarn",
-        },
-        { title: "npm", value: "npm" },
-      ],
-      initial: 0,
-    });
-
-    const response = await prompts({
-      type: "text",
-      name: "value",
-      message: `Relative path to your source folder (${chalk.yellow(
-        "node_modules will be ignored"
-      )}) (e.g, ${chalk.gray("src/")}, ${chalk.gray(".")})`,
-      initial: "",
-    });
-
-    await updateNativeBaseVersion(packageManager.value, nextVersion);
-    await updateFiles(path.join(projectWorkingDirectory, response.value));
-
-    printSuccessMessage(nextVersion);
-  }
-})();
+  })();
+} catch (err) {
+  console.log(chalk.red(err));
+  console.log(chalk.red("\nUnable to run codemod!"));
+  process.exit(1);
+}
