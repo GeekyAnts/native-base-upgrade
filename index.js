@@ -9,12 +9,23 @@ const chalk = require("chalk");
 var shell = require("shelljs");
 var exec = shell.exec;
 const projectWorkingDirectory = process.cwd();
+const commandLineArgs = require("command-line-args");
+
+const optionDefinitions = [{ name: "verbose", alias: "v", type: Boolean }];
+let options = {};
+
+try {
+  options = commandLineArgs(optionDefinitions);
+} catch (err) {
+  // console.log(err);
+}
+const silent = options.verbose ? false : true;
 
 async function getCurrentVersion() {
   return new Promise((resolve, reject) => {
     exec(
       `npx npm ls native-base`,
-      { cwd: projectWorkingDirectory, silent: true },
+      { cwd: projectWorkingDirectory, silent: silent },
       (err, stdout) => {
         if (err) {
           reject(err);
@@ -35,7 +46,7 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
       const yarnAddCommand = `yarn add native-base@${nextVersion}`;
       exec(
         yarnAddCommand,
-        { cwd: projectWorkingDirectory, silent: true },
+        { cwd: projectWorkingDirectory, silent: false },
         (err, stdout) => {
           if (err) {
             console.log(err);
@@ -45,7 +56,7 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
             );
             reject(err);
           }
-          console.log(stdout);
+          // console.log(stdout);
           resolve();
         }
       );
@@ -55,16 +66,15 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
 
       exec(
         npmInstallCommand,
-        { cwd: projectWorkingDirectory, silent: true },
+        { cwd: projectWorkingDirectory, silent: false },
         (err, stdout) => {
           if (err) {
-            console.log(err);
             console.log(
               `\n${chalk.yellow(`${chalk.bold(npmInstallCommand)} failed!`)}`
             );
             return;
           }
-          console.log(stdout);
+          // console.log(stdout);
           resolve();
         }
       );
@@ -76,13 +86,12 @@ async function updateFiles(srcPath) {
   return new Promise((resolve, reject) => {
     exec(
       `node ${__dirname}/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" --extensions="ts, tsx, js, jsx" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
-      { silent: true },
+      { silent: silent },
       (err, stdout) => {
         if (err) {
           console.log("Error: ", err);
           reject(err);
         }
-        // console.log(stdout);
         resolve();
       }
     );
@@ -126,7 +135,7 @@ async function checkGitAvailable() {
   return new Promise((resolve, reject) => {
     exec(
       `git rev-parse --is-inside-work-tree`,
-      { cwd: projectWorkingDirectory, silent: true },
+      { cwd: projectWorkingDirectory, silent: silent },
       (err, stdout) => {
         if (err) {
           reject();
@@ -276,8 +285,13 @@ try {
         initial: "",
       });
 
-      await updateNativeBaseVersion(packageManager.value, nextVersion);
-      await updateFiles(path.join(projectWorkingDirectory, response.value));
+      try {
+        await updateNativeBaseVersion(packageManager.value, nextVersion);
+        await updateFiles(path.join(projectWorkingDirectory, response.value));
+      } catch (err) {
+        console.log(chalk.red("\nUnable to run codemod!"));
+        process.exit(1);
+      }
 
       printSuccessMessage(nextVersion);
     }
