@@ -75,7 +75,7 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
 async function updateFiles(srcPath) {
   return new Promise((resolve, reject) => {
     exec(
-      `node ${__dirname}/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
+      `node ${__dirname}/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" --extensions="ts, tsx, js, jsx" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
       { silent: true },
       (err, stdout) => {
         if (err) {
