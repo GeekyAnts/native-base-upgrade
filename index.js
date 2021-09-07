@@ -268,9 +268,9 @@ async function fetchUserCurrentVersion() {
     const response = await prompts({
       type: "text",
       name: "value",
-      message: `Enter the relative path to your source folder (e.g, ${chalk.gray(
-        "src/"
-      )}, ${chalk.gray(".")})`,
+      message: `Relative path to your source folder (${chalk.yellow(
+        "node_modules will be ignored"
+      )}) (e.g, ${chalk.gray("src/")}, ${chalk.gray(".")})`,
       initial: "",
     });
 
