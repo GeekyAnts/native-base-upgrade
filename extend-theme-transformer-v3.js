@@ -67,8 +67,6 @@ const setDirtyFile = (fileInfo) => {
 
 const oldTheme = JSON.stringify(oldThemeObj, null, 2);
 
-console.log("hello here");
-
 // exit
 export default (fileInfo, api) => {
   const j = api.jscodeshift;

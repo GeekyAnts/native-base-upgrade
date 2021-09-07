@@ -10,7 +10,6 @@ var shell = require("shelljs");
 var exec = shell.exec;
 const projectWorkingDirectory = process.cwd();
 const commandLineArgs = require("command-line-args");
-
 const optionDefinitions = [{ name: "verbose", alias: "v", type: Boolean }];
 let options = {};
 
@@ -85,7 +84,7 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
 async function updateFiles(srcPath) {
   return new Promise((resolve, reject) => {
     exec(
-      `node ${__dirname}/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" --extensions="ts, tsx, js, jsx" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
+      `npx jscodeshift --ignore-pattern="**/node_modules/**" --extensions="ts,tsx,js,jsx" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
       { silent: silent },
       (err, stdout) => {
         if (err) {
@@ -287,6 +286,7 @@ try {
 
       try {
         await updateNativeBaseVersion(packageManager.value, nextVersion);
+        console.log(chalk.greenBright(`Modifying files...`));
         await updateFiles(path.join(projectWorkingDirectory, response.value));
       } catch (err) {
         console.log(chalk.red("\nUnable to run codemod!"));

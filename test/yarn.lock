@@ -815,10 +815,10 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-native-base@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/native-base/-/native-base-3.1.0.tgz#8cc9d796a67b8f52dc78ac2983c8ba09a4ceb4f9"
-  integrity sha512-7ow2QyICOonkDgEiHl/clShLPHI17KoLRb8JERzqwsntAGVneFisvz/r/bWvapSNe1aBSGPyHanPZE49detTWw==
+native-base@3.2.0-alpha.3:
+  version "3.2.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/native-base/-/native-base-3.2.0-alpha.3.tgz#1e1f3c0eceb511021bd2acfee0f48a28567a98a7"
+  integrity sha512-4zN7zyydRawacn3nikIgK+T21X6t0z6KjaAGKqe+SfUQGC7ThU1lfsaDy281ZJREnkq3ePJ1r01vGiR1yezLDw==
   dependencies:
     "@react-aria/focus" "^3.2.3"
     "@react-aria/utils" "^3.6.0"
