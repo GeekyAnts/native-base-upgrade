@@ -83,17 +83,16 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
 
 async function updateFiles(srcPath) {
   return new Promise((resolve, reject) => {
-    exec(
-      `npx jscodeshift --ignore-pattern="**/node_modules/**" --extensions="ts,tsx,js,jsx" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
-      { silent: silent },
-      (err, stdout) => {
-        if (err) {
-          console.log("Error: ", err);
-          reject(err);
-        }
-        resolve();
+    const transformCommand = `node ${__dirname}/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" --extensions="js,jsx,ts,tsx" --parser="tsx" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`;
+    const transformCommandProduction = `npx jscodeshift --ignore-pattern="**/node_modules/**" --extensions="js,jsx,ts,tsx" --parser="tsx" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`;
+
+    exec(transformCommandProduction, { silent: silent }, (err, stdout) => {
+      if (err) {
+        console.log("Error: ", err);
+        reject(err);
       }
-    );
+      resolve();
+    });
   });
 }
 
