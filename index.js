@@ -166,9 +166,50 @@ async function fetchUserCurrentVersion() {
   }
 }
 
+async function isValidSrcPath(srcPath) {
+  if (fs.existsSync(path.join(projectWorkingDirectory, srcPath))) {
+    return true;
+  } else {
+    console.log(chalk.red("Invalid path!"));
+    return false;
+  }
+}
+
+async function getSrcPath() {
+  let validSrcPath;
+  let srcPath;
+  while (!validSrcPath) {
+    const response = await prompts({
+      type: "text",
+      name: "value",
+      message: `Relative path to your source folder (${chalk.yellow(
+        "node_modules will be ignored"
+      )}) (e.g, ${chalk.gray("src/")}, ${chalk.gray(".")})`,
+      initial: "",
+    });
+
+    if (response.value === undefined) {
+      process.exit(0);
+    }
+    srcPath = response.value;
+    validSrcPath = await isValidSrcPath(srcPath);
+  }
+
+  return srcPath;
+}
+
+function printVersion() {
+  var pjson = require("./package.json");
+  console.log(chalk.green(" ............................"));
+  console.log(chalk.green(" native-base-upgrade"));
+  console.log(chalk.green(` version: ${pjson.version}`));
+  console.log(chalk.green(" ............................"));
+  console.log(chalk.green("\n"));
+}
 try {
   (async () => {
     cleanTemp();
+    // printVersion();
     let currentVersion;
     let gitAvailable = false;
 
@@ -275,19 +316,13 @@ try {
         initial: 0,
       });
 
-      const response = await prompts({
-        type: "text",
-        name: "value",
-        message: `Relative path to your source folder (${chalk.yellow(
-          "node_modules will be ignored"
-        )}) (e.g, ${chalk.gray("src/")}, ${chalk.gray(".")})`,
-        initial: "",
-      });
+      // check for src path
 
+      const srcPath = await getSrcPath();
       try {
         await updateNativeBaseVersion(packageManager.value, nextVersion);
         console.log(chalk.greenBright(`Modifying files...`));
-        await updateFiles(path.join(projectWorkingDirectory, response.value));
+        await updateFiles(path.join(projectWorkingDirectory, srcPath));
       } catch (err) {
         console.log(chalk.red("\nUnable to run codemod!"));
         process.exit(1);

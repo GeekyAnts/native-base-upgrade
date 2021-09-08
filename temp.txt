@@ -1,1 +1,0 @@
-/Users/suraj/Sites/projects/nativebase-codemod/test/app.js
