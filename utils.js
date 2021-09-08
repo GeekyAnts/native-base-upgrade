@@ -54,7 +54,7 @@ const setDirtyFile = (fileInfo) => {
     dataString = "";
   }
 
-  if (dataString.indexOf(fileInfo.path) > 0) {
+  if (dataString.indexOf(fileInfo.path) >= 0) {
     return;
   }
   const content = dataString + fileInfo.path + "\n";

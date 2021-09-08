@@ -359,7 +359,7 @@
     "@react-aria/utils" "^3.6.0"
     "@react-native-aria/utils" "^0.2.6"
 
-"@react-native-aria/listbox@^0.2.4-alpha.0":
+"@react-native-aria/listbox@^0.2.4-alpha.3":
   version "0.2.4-alpha.3"
   resolved "https://registry.yarnpkg.com/@react-native-aria/listbox/-/listbox-0.2.4-alpha.3.tgz#1a8df0de6c932c8143ea73e43713a5d37070203c"
   integrity sha512-e/y+Wdoyy/PbpFj4DVYDYMsKI+uUqnZ/0yLByqHQvzs8Ys8o69CQkyEYzHhxvFT5lCLegkLbuQN2cJd8bYNQsA==
@@ -815,18 +815,20 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-native-base@3.0.7:
-  version "3.0.7"
-  resolved "https://registry.yarnpkg.com/native-base/-/native-base-3.0.7.tgz#21069be0b3c32e151f3e4b5183a05f33615159c6"
-  integrity sha512-Ee4FHAmy7mIkT3UjDGRKEC2neAPIBMZ3AI7F5WIJ7vFSNvuw2zs1OPV8aluuA2O/kRGY/3m1+Scs1GJFP/fwOw==
+native-base@3.2.0-alpha.3:
+  version "3.2.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/native-base/-/native-base-3.2.0-alpha.3.tgz#1e1f3c0eceb511021bd2acfee0f48a28567a98a7"
+  integrity sha512-4zN7zyydRawacn3nikIgK+T21X6t0z6KjaAGKqe+SfUQGC7ThU1lfsaDy281ZJREnkq3ePJ1r01vGiR1yezLDw==
   dependencies:
+    "@react-aria/focus" "^3.2.3"
+    "@react-aria/utils" "^3.6.0"
     "@react-aria/visually-hidden" "^3.2.1"
     "@react-native-aria/button" "^0.2.4"
     "@react-native-aria/checkbox" "^0.2.2"
     "@react-native-aria/combobox" "^0.2.4-alpha.0"
     "@react-native-aria/focus" "^0.2.4"
     "@react-native-aria/interactions" "^0.2.2"
-    "@react-native-aria/listbox" "^0.2.4-alpha.0"
+    "@react-native-aria/listbox" "^0.2.4-alpha.3"
     "@react-native-aria/overlays" "^0.2.9"
     "@react-native-aria/radio" "^0.2.4"
     "@react-native-aria/slider" "^0.2.5-alpha.1"

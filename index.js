@@ -126,13 +126,7 @@ async function updateFiles(srcPath) {
       transformerPath = path.join(__dirname, "transformer.js");
     }
     const transformCommand =
-      runCommandProduction +
-      " " +
-      options +
-      " -t " +
-      transformerPath +
-      " " +
-      srcPath;
+      runCommand + " " + options + " -t " + transformerPath + " " + srcPath;
 
     // console.log(transformCommand, experimentalInlineProps, "hello transform");
     exec(transformCommand, { silent: silent }, (err, stdout) => {
