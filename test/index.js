@@ -6,9 +6,9 @@ const Test = () => {
   return (
     <Box
       lineHeight="12"
-      letterSpacing="xxs"
-      radius="sm"
-      fontSizes="xxs"
+      letterSpacing="2xs"
+      radius="xs"
+      fontSizes="2xs"
       color="red.200"
     >
       Hello World

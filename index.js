@@ -9,16 +9,44 @@ const chalk = require("chalk");
 var shell = require("shelljs");
 var exec = shell.exec;
 const projectWorkingDirectory = process.cwd();
+/// test script
+// exec(
+//   `node /Users/suraj/Sites/projects/nativebase-codemod/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" --extensions="js,jsx,ts,tsx" --parser="tsx" -t /Users/suraj/Sites/projects/nativebase-codemod/transformer.js /Users/suraj/Sites/projects/nativebase-codemod/test`,
+//   { silent: false },
+//   (err, stdout) => {
+//     console.log("hello here");
+//     if (err) {
+//       console.log("Error: ", err);
+//     }
+//     console.log(stdout);
+//   }
+// );
+
+//
+
+///
+///
+///
+///
 const commandLineArgs = require("command-line-args");
-const optionDefinitions = [{ name: "verbose", alias: "v", type: Boolean }];
+const optionDefinitions = [
+  { name: "verbose", alias: "v", type: Boolean },
+  { name: "experimental-inline-props", alias: "e", type: Boolean },
+];
+
 let options = {};
 
 try {
   options = commandLineArgs(optionDefinitions);
 } catch (err) {
-  // console.log(err);
+  console.log(chalk.red(err.message));
+  process.exit(0);
 }
+
 const silent = options.verbose ? false : true;
+const experimentalInlineProps = options["experimental-inline-props"]
+  ? true
+  : false;
 
 async function getCurrentVersion() {
   return new Promise((resolve, reject) => {
@@ -83,10 +111,31 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
 
 async function updateFiles(srcPath) {
   return new Promise((resolve, reject) => {
-    const transformCommand = `node ${__dirname}/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" --extensions="js,jsx,ts,tsx" --parser="tsx" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`;
-    const transformCommandProduction = `npx jscodeshift --ignore-pattern="**/node_modules/**" --extensions="js,jsx,ts,tsx" --parser="tsx" -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`;
+    const runCommand = `node ${path.join(
+      __dirname,
+      "node_modules/.bin/jscodeshift"
+    )}`;
+    const runCommandProduction = `npx jscodeshift`;
+    const options = `--ignore-pattern="**/node_modules/**" --extensions="js,jsx,ts,tsx" --parser="tsx"`;
 
-    exec(transformCommandProduction, { silent: silent }, (err, stdout) => {
+    let transformerPath;
+
+    if (!experimentalInlineProps) {
+      transformerPath = path.join(__dirname, "extend-theme-transformer-v3.js");
+    } else {
+      transformerPath = path.join(__dirname, "transformer.js");
+    }
+    const transformCommand =
+      runCommandProduction +
+      " " +
+      options +
+      " -t " +
+      transformerPath +
+      " " +
+      srcPath;
+
+    // console.log(transformCommand, experimentalInlineProps, "hello transform");
+    exec(transformCommand, { silent: silent }, (err, stdout) => {
       if (err) {
         console.log("Error: ", err);
         reject(err);

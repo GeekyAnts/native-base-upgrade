@@ -1,6 +1,8 @@
 const path = require("path");
 const fs = require("fs");
 
+const { setDirtyFile } = require("./utils");
+
 const oldThemeObj = {
   lineHeights: {
     none: 1,
@@ -43,22 +45,6 @@ const oldThemeObj = {
   borderWidth: {
     none: 0,
   },
-};
-
-const setDirtyFile = (fileInfo) => {
-  const data = fs.readFileSync(path.join(__dirname, "temp.txt"), {
-    encoding: "utf8",
-    flag: "r",
-  });
-  let dataString = data.toString();
-
-  if (!dataString) {
-    dataString = "";
-  }
-
-  const content = dataString + fileInfo.path + "\n";
-
-  fs.writeFileSync(path.join(__dirname, "temp.txt"), content);
 };
 
 const oldTheme = JSON.stringify(oldThemeObj, null, 2);
