@@ -199,12 +199,14 @@ async function getSrcPath() {
 }
 
 function printVersion() {
-  var pjson = require("./package.json");
-  console.log(chalk.green(" ............................"));
-  console.log(chalk.green(" native-base-upgrade"));
-  console.log(chalk.green(` version: ${pjson.version}`));
-  console.log(chalk.green(" ............................"));
-  console.log(chalk.green("\n"));
+  if (!silent) {
+    var pjson = require("./package.json");
+    console.log(chalk.green(" ............................"));
+    console.log(chalk.green(" native-base-upgrade"));
+    console.log(chalk.green(` version: ${pjson.version}`));
+    console.log(chalk.green(" ............................"));
+    console.log(chalk.green("\n"));
+  }
 }
 try {
   (async () => {
