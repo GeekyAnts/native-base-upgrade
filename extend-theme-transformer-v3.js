@@ -1,11 +1,16 @@
+const path = require("path");
+const fs = require("fs");
+
+const { setDirtyFile } = require("./utils");
+
 const oldThemeObj = {
   lineHeights: {
-    none: 1,
-    shorter: 1.25,
-    short: 1.375,
-    base: 1.5,
-    tall: 1.625,
-    taller: 2,
+    none: "1",
+    shorter: "1.25",
+    short: "1.375",
+    base: "1.5",
+    tall: "1.625",
+    taller: "2",
     3: "12px",
     4: "16px",
     5: "20px",
@@ -16,33 +21,34 @@ const oldThemeObj = {
     10: "40px",
   },
   letterSpacings: {
-    xxs: -1.5,
-    xs: -0.5,
-    sm: 0,
-    md: 0.1,
-    lg: 0.15,
-    xl: 0.25,
-    "2xl": 0.4,
-    "3xl": 0.5,
-    "4xl": 1.25,
-    "5xl": 1.5,
+    xxs: "-1.5",
+    xs: "-0.5",
+    sm: "0",
+    md: "0.1",
+    lg: "0.15",
+    xl: "0.25",
+    "2xl": "0.4",
+    "3xl": "0.5",
+    "4xl": "1.25",
+    "5xl": "1.5",
   },
   fontSizes: {
-    xxs: 10,
+    xxs: "10",
   },
   radii: {
-    sm: 2,
-    md: 4,
-    lg: 6,
-    xl: 8,
-    pill: 25,
+    sm: "2",
+    md: "4",
+    lg: "6",
+    xl: "8",
+    pill: "25",
   },
   borderWidth: {
-    none: 0,
+    none: "0",
   },
 };
 
 const oldTheme = JSON.stringify(oldThemeObj, null, 2);
+
 // exit
 export default (fileInfo, api) => {
   const j = api.jscodeshift;
@@ -51,6 +57,7 @@ export default (fileInfo, api) => {
 
   modifyExtendTheme();
   modifyProvider();
+
   function modifyExtendTheme() {
     // extendTheme import
     let localNameExtendTheme = "extendTheme";
@@ -84,7 +91,6 @@ export default (fileInfo, api) => {
       });
 
       const callExpressionLength = callExpression.length;
-      console.log("hello");
       if (callExpressionLength) {
         // const output = callExpression.find(j.ObjectExpression);
 
@@ -100,14 +106,9 @@ export default (fileInfo, api) => {
             index === 0
           ) {
             node.insertBefore(`${oldTheme}`);
+            setDirtyFile(fileInfo);
           }
         });
-        // console.log(callExpressionLength, output.length);
-        // const output = callExpression.forEach((node) => {
-        //   // const objectExpression = node.parent.find(j.ObjectExpression);
-        //   // console.log(node.parent);
-        //   // node.insertBefore(`${oldTheme}`);
-        // });
       }
     }
   }
@@ -142,6 +143,8 @@ export default (fileInfo, api) => {
       nativeBaseProviderJSX.replaceWith(
         `<NativeBaseProvider theme={theme_v3}>`
       );
+
+      setDirtyFile(fileInfo);
     } else {
       // if empty theme
       // const themeAttrNode = themeAttribute.nodes()[0];
@@ -171,7 +174,7 @@ export default (fileInfo, api) => {
       root
         .find(j.ImportDeclaration)
         .get()
-        .insertBefore('import {extendTheme} from "native-base";');
+        .insertBefore('import { extendTheme } from "native-base";');
     }
   }
   return root.toSource();

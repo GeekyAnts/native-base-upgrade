@@ -1,13 +1,16 @@
 {
   "name": "native-base-upgrade",
-  "version": "1.0.4",
+  "version": "1.0.20",
   "main": "index.js",
   "bin": "index.js",
   "author": "Aditya Jamuar",
   "license": "MIT",
   "dependencies": {
-    "jscodeshift": "^0.13.0",
-    "prompts": "^2.4.1"
+    "chalk": "^4.1.2",
+    "command-line-args": "^5.2.0",
+    "prompts": "^2.4.1",
+    "semver": "^7.3.5",
+    "shelljs": "^0.8.4"
   },
   "scripts": {
     "start": "node index.js"

@@ -1,46 +1,65 @@
 #! /usr/bin/env node
 
-const { exec, execSync } = require("child_process");
 var prompts = require("prompts");
 const { nextVersions } = require("./next-versions");
-
+const fs = require("fs");
+const path = require("path");
+const semver = require("semver");
+const chalk = require("chalk");
+var shell = require("shelljs");
+var exec = shell.exec;
 const projectWorkingDirectory = process.cwd();
-// exec("npx jscodeshift -t ./transformer.js ./test/index.js", (err, stdout) => {
-//   if (err) {
-//     console.error(err);
-//     return;
-//   }
-//   console.log(stdout);
-// });
-
+/// test script
 // exec(
-//   "node ./node_modules/.bin/jscodeshift -t ./extend-theme-transformer-v3.js ./test/index.js",
+//   `node /Users/suraj/Sites/projects/nativebase-codemod/node_modules/.bin/jscodeshift --ignore-pattern="**/node_modules/**" --extensions="js,jsx,ts,tsx" --parser="tsx" -t /Users/suraj/Sites/projects/nativebase-codemod/transformer.js /Users/suraj/Sites/projects/nativebase-codemod/test`,
+//   { silent: false },
 //   (err, stdout) => {
+//     console.log("hello here");
 //     if (err) {
-//       console.error(err);
-//       return;
+//       console.log("Error: ", err);
 //     }
 //     console.log(stdout);
 //   }
 // );
 
-// process.exit(0);
+//
 
-// /
+///
+///
+///
+///
+const commandLineArgs = require("command-line-args");
+const optionDefinitions = [
+  { name: "verbose", alias: "v", type: Boolean },
+  { name: "experimental-inline-props", alias: "e", type: Boolean },
+];
 
-// console.log(__dirname, "hello dir", process.cwd());
+let options = {};
+
+try {
+  options = commandLineArgs(optionDefinitions);
+} catch (err) {
+  console.log(chalk.red(err.message));
+  process.exit(0);
+}
+
+const silent = options.verbose ? false : true;
+const experimentalInlineProps = options["experimental-inline-props"]
+  ? true
+  : false;
+
 async function getCurrentVersion() {
-  // var pjson = require(path + "package.json");
-
   return new Promise((resolve, reject) => {
     exec(
-      `cd ${projectWorkingDirectory} && npx npm ls native-base`,
+      `npx npm ls native-base`,
+      { cwd: projectWorkingDirectory, silent: silent },
       (err, stdout) => {
         if (err) {
-          console.log("Error: ", err);
           reject(err);
         }
-        const currentVersion = stdout.trim().split("@")[2];
+
+        const output = stdout.trim();
+        const currentVersion = output.slice(output.lastIndexOf("@") + 1);
         resolve(currentVersion);
       }
     );
@@ -51,30 +70,38 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
   return new Promise((resolve, reject) => {
     if (packageManager === "yarn") {
       //
+      const yarnAddCommand = `yarn add native-base@${nextVersion}`;
       exec(
-        `yarn add --modules-folder ${projectWorkingDirectory}/node_modules native-base@${nextVersion}`,
+        yarnAddCommand,
+        { cwd: projectWorkingDirectory, silent: false },
         (err, stdout) => {
           if (err) {
-            console.log("Error: ", err);
+            console.log(err);
+
+            console.log(
+              `\n${chalk.yellow(`${chalk.bold(yarnAddCommand)} failed!`)}`
+            );
             reject(err);
           }
-          console.log(stdout);
-          console.log("Updated native-base");
-
+          // console.log(stdout);
           resolve();
         }
       );
     } else {
       //
+      const npmInstallCommand = `npm install native-base@${nextVersion}`;
+
       exec(
-        `npm install --prefix ${projectWorkingDirectory} native-base@${nextVersion}`,
+        npmInstallCommand,
+        { cwd: projectWorkingDirectory, silent: false },
         (err, stdout) => {
           if (err) {
-            console.log("Error: ", err);
+            console.log(
+              `\n${chalk.yellow(`${chalk.bold(npmInstallCommand)} failed!`)}`
+            );
             return;
           }
-          console.log(stdout);
-          console.log("Updated native-base");
+          // console.log(stdout);
           resolve();
         }
       );
@@ -84,69 +111,273 @@ async function updateNativeBaseVersion(packageManager, nextVersion) {
 
 async function updateFiles(srcPath) {
   return new Promise((resolve, reject) => {
-    exec(
-      `node ${__dirname}/node_modules/.bin/jscodeshift -t ${__dirname}/extend-theme-transformer-v3.js ${srcPath}`,
-      (err, stdout) => {
-        if (err) {
-          console.log("Error: ", err);
-          reject(err);
-        }
-        console.log(stdout);
-        resolve();
+    const runCommand = `node ${path.join(
+      __dirname,
+      "node_modules/.bin/jscodeshift"
+    )}`;
+    const runCommandProduction = `npx jscodeshift`;
+    const options = `--ignore-pattern="**/node_modules/**" --extensions="js,jsx,ts,tsx" --parser="tsx"`;
+
+    let transformerPath;
+
+    if (!experimentalInlineProps) {
+      transformerPath = path.join(__dirname, "extend-theme-transformer-v3.js");
+    } else {
+      transformerPath = path.join(__dirname, "transformer.js");
+    }
+    const transformCommand =
+      runCommand + " " + options + " -t " + transformerPath + " " + srcPath;
+
+    // console.log(transformCommand, experimentalInlineProps, "hello transform");
+    exec(transformCommand, { silent: silent }, (err, stdout) => {
+      if (err) {
+        console.log("Error: ", err);
+        reject(err);
       }
-    );
+      resolve();
+    });
   });
 }
 
+function printSuccessMessage(nextVersion) {
+  fs.readFile(path.join(__dirname, "temp.txt"), (err, data) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log(
+      chalk.bold(`native-base upgraded to ` + chalk.green(nextVersion))
+    );
+
+    console.log(chalk.bold("\nModified files: "));
+    console.log(chalk.cyan(data.toString()));
+
+    console.log(
+      chalk.yellow(
+        `\nIt is recommended for you to verify the changes made to these files by the codemod. Happy coding!`
+      )
+    );
+  });
+}
 function getNextUpgradableVersion(currentVersion) {
   return nextVersions[currentVersion];
 }
 
-(async () => {
-  const currentVersion = await getCurrentVersion();
-  const nextVersion = getNextUpgradableVersion(currentVersion);
+function cleanTemp() {
+  fs.writeFile(path.join(__dirname, "temp.txt"), "", (err) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+  });
+}
 
-  if (!nextVersion) {
-    console.warn("No version to upgrade!");
-    process.exit();
-  }
+async function checkGitAvailable() {
+  return new Promise((resolve, reject) => {
+    exec(
+      `git rev-parse --is-inside-work-tree`,
+      { cwd: projectWorkingDirectory, silent: silent },
+      (err, stdout) => {
+        if (err) {
+          reject();
+        }
+        resolve(true);
+      }
+    );
+  });
+  //git rev-parse --is-inside-work-tree
+}
+// main
 
-  const updgradableVersions = [];
-
+async function fetchUserCurrentVersion() {
   const response = await prompts({
-    type: "confirm",
+    type: "text",
     name: "value",
-    message: `Upgrade to ${nextVersion}, Can you confirm?`,
-    initial: true,
+    message: `Enter your native-base version (e.g, ${chalk.gray("3.0.7")})`,
+    initial: "",
   });
 
-  const packageManager = await prompts({
-    type: "select",
-    name: "value",
-    message: "Update native-base using ",
-    choices: [
-      {
-        title: "yarn",
-        value: "yarn",
-      },
-      { title: "npm", value: "npm" },
-    ],
-    initial: 0,
-  });
+  if (
+    !response.value ||
+    !semver.valid(response.value) // '1.2.3'
+  ) {
+    console.log(chalk.red(`Invalid version! Please try again!`));
+    process.exit(0);
+    // return fetchUserCurrentVersion();
+  } else {
+    return response.value;
+  }
+}
 
-  if (response.value === true) {
+async function isValidSrcPath(srcPath) {
+  if (fs.existsSync(path.join(projectWorkingDirectory, srcPath))) {
+    return true;
+  } else {
+    console.log(chalk.red("Invalid path!"));
+    return false;
+  }
+}
+
+async function getSrcPath() {
+  let validSrcPath;
+  let srcPath;
+  while (!validSrcPath) {
     const response = await prompts({
       type: "text",
       name: "value",
-      message: `What's your src/ location?`,
-      initial: "src/",
+      message: `Relative path to your source folder (${chalk.yellow(
+        "node_modules will be ignored"
+      )}) (e.g, ${chalk.gray("src/")}, ${chalk.gray(".")})`,
+      initial: "",
     });
 
-    await updateNativeBaseVersion(packageManager.value, nextVersion);
-
-    console.log(projectWorkingDirectory, response.value);
-    await updateFiles(projectWorkingDirectory + "/" + response.value);
-
-    console.log("Files updated");
+    if (response.value === undefined) {
+      process.exit(0);
+    }
+    srcPath = response.value;
+    validSrcPath = await isValidSrcPath(srcPath);
   }
-})();
+
+  return srcPath;
+}
+
+function printVersion() {
+  if (!silent) {
+    var pjson = require("./package.json");
+    console.log(chalk.green(" ............................"));
+    console.log(chalk.green(` name: ${pjson.name}`));
+    console.log(chalk.green(` version: ${pjson.version}`));
+    console.log(chalk.green(" ............................"));
+    console.log(chalk.green("\n"));
+  }
+}
+try {
+  (async () => {
+    cleanTemp();
+    printVersion();
+    let currentVersion;
+    let gitAvailable = false;
+
+    try {
+      currentVersion = await getCurrentVersion();
+    } catch (err) {
+      console.log(
+        chalk.red(`Failed to fetch your current version of native-base!`)
+      );
+
+      currentVersion = await fetchUserCurrentVersion();
+    }
+
+    try {
+      gitAvailable = await checkGitAvailable();
+    } catch (err) {
+      //
+    }
+
+    const nextVersion = getNextUpgradableVersion(currentVersion);
+
+    if (!gitAvailable) {
+      console.log(
+        chalk.yellow(
+          `We couldn't find a git repository in your project directory.\nIt's recommended to back up your project before proceeding.`
+        )
+      );
+    } else {
+      console.log(
+        chalk.yellow(
+          `It's recommended to commit all your changes before proceeding, so you can revert the changes made by this command if necessary.`
+        )
+      );
+    }
+
+    const continueResponse = await prompts({
+      type: "confirm",
+      name: "value",
+      message: `Do you want continue?`,
+      initial: true,
+    });
+
+    if (!continueResponse.value) {
+      process.exit(0);
+    }
+
+    console.log(chalk.bold(`Current Version: `) + chalk.green(currentVersion));
+
+    if (!nextVersion) {
+      console.warn(
+        chalk.yellow(`No codemod available to for v${currentVersion}`)
+      );
+
+      const response = await prompts({
+        type: "confirm",
+        name: "value",
+        message: `Do you want to upgrade native-base to latest version?`,
+        initial: true,
+      });
+
+      if (response.value === true) {
+        const packageManager = await prompts({
+          type: "select",
+          name: "value",
+          message: "Update native-base using ",
+          choices: [
+            {
+              title: "yarn",
+              value: "yarn",
+            },
+            { title: "npm", value: "npm" },
+          ],
+          initial: 0,
+        });
+        await updateNativeBaseVersion(packageManager.value, "latest");
+      }
+
+      process.exit(0);
+    }
+
+    const updgradableVersions = [];
+
+    const response = await prompts({
+      type: "confirm",
+      name: "value",
+      message: `Upgrade to ${chalk.cyan(
+        nextVersion
+      )} using codemod, Can you confirm?`,
+      initial: true,
+    });
+
+    if (response.value === true) {
+      const packageManager = await prompts({
+        type: "select",
+        name: "value",
+        message: "Update native-base using ",
+        choices: [
+          {
+            title: "yarn",
+            value: "yarn",
+          },
+          { title: "npm", value: "npm" },
+        ],
+        initial: 0,
+      });
+
+      // check for src path
+
+      const srcPath = await getSrcPath();
+      try {
+        await updateNativeBaseVersion(packageManager.value, nextVersion);
+        console.log(chalk.greenBright(`Modifying files...`));
+        await updateFiles(path.join(projectWorkingDirectory, srcPath));
+      } catch (err) {
+        console.log(chalk.red("\nUnable to run codemod!"));
+        process.exit(1);
+      }
+
+      printSuccessMessage(nextVersion);
+    }
+  })();
+} catch (err) {
+  console.log(chalk.red(err));
+  console.log(chalk.red("\nUnable to run codemod!"));
+  process.exit(1);
+}

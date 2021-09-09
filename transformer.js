@@ -1,5 +1,5 @@
 import config from "./config.json";
-const describe = require("jscodeshift-helper").describe;
+const { setDirtyFile } = require("./utils");
 
 export default (fileInfo, api) => {
   const j = api.jscodeshift;
@@ -19,25 +19,33 @@ export default (fileInfo, api) => {
 
       if (config[node.name.name]) {
         let propNode = config[node.name.name];
-        let value = undefined;
 
-        if (node.value.type === "Literal") {
-          value = node.value.value;
-        } else if (node.value.type === "JSXExpressionContainer") {
-          value = node.value.expression.value;
+        let nodeValue = node.value;
+        let nodeValueType = node.value.type;
+
+        if (node.value.type === "JSXExpressionContainer") {
+          nodeValue = node.value.expression;
+          nodeValueType = node.value.expression.type;
         }
 
-        if (propNode["valueMap"] && propNode["valueMap"][value]) {
-          value = propNode["valueMap"][value];
-        } else {
-          if (!value.endsWith("px")) value += "px";
-        }
+        let transformedValue;
 
-        const newNode = j.literal(value);
-        node.value = newNode;
+        if (
+          nodeValueType === "NumericLiteral" ||
+          nodeValueType === "StringLiteral"
+        ) {
+          if (propNode["valueMap"] && propNode["valueMap"][nodeValue.value]) {
+            transformedValue = propNode["valueMap"][nodeValue.value];
+          } else {
+            transformedValue = String(nodeValue.value);
+          }
+
+          const newNode = j.stringLiteral(transformedValue);
+          node.value = newNode;
+          setDirtyFile(fileInfo);
+        }
       }
 
-      describe(node);
       return node;
     })
     .toSource();

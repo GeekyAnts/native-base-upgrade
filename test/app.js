@@ -51,6 +51,27 @@ function App() {
   return (
     (<NativeBaseProvider theme={theme_v3}>
       <Box bg="primary.500" p={4} />
+      <Box
+        lineHeight="19"
+        letterSpacing="2xs"
+        radius="xs"
+        fontSizes="23"
+        color="red.200"
+      >
+        Hello World
+      </Box>
+      <Box
+        lineHeight="19"
+        letterSpacing="2xs"
+        radius="xs"
+        fontSizes="23px"
+        color="red.200"
+      >
+        Hello World
+      </Box>
+      <Box letterSpacing="2xs" radius="xs" fontSizes="23px" color="red.200">
+        Hello World
+      </Box>
     </NativeBaseProvider>)
   );
 }
