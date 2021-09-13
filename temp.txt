@@ -1,1 +1,3 @@
+/Users/suraj/Sites/projects/nativebase-codemod/test/index.js
+/Users/suraj/Sites/projects/nativebase-codemod/test/app_old.js
 /Users/suraj/Sites/projects/nativebase-codemod/test/app.js

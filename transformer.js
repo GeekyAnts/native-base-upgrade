@@ -21,35 +21,39 @@ export default (fileInfo, api) => {
       let propNode = config[node.name.name];
 
       let nodeValue = node.value;
-      let nodeValueType = node.value.type;
 
-      if (node.value.type === "JSXExpressionContainer") {
-        nodeValue = node.value.expression;
-        nodeValueType = node.value.expression.type;
-      }
+      if (nodeValue) {
+        let nodeValueType = nodeValue.type;
 
-      let transformedValue;
-
-      if (
-        nodeValueType === "NumericLiteral" ||
-        nodeValueType === "StringLiteral"
-      ) {
-        if (
-          propNode &&
-          propNode["valueMap"] &&
-          propNode["valueMap"][nodeValue.value]
-        ) {
-          transformedValue = propNode["valueMap"][nodeValue.value];
-        } else {
-          // console.log(nodeValueType, nodeValue.value);
-
-          transformedValue = String(nodeValue.value);
+        if (node.value.type === "JSXExpressionContainer") {
+          nodeValue = node.value.expression;
+          nodeValueType = node.value.expression.type;
         }
 
-        const newNode = j.stringLiteral(transformedValue);
-        node.value = newNode;
-        setDirtyFile(fileInfo);
+        let transformedValue;
+
+        if (
+          nodeValueType === "NumericLiteral" ||
+          nodeValueType === "StringLiteral"
+        ) {
+          if (
+            propNode &&
+            propNode["valueMap"] &&
+            propNode["valueMap"][nodeValue.value]
+          ) {
+            transformedValue = propNode["valueMap"][nodeValue.value];
+          } else {
+            // console.log(nodeValueType, nodeValue.value);
+
+            transformedValue = String(nodeValue.value);
+          }
+
+          const newNode = j.stringLiteral(transformedValue);
+          node.value = newNode;
+          setDirtyFile(fileInfo);
+        }
       }
+
       // }
 
       return node;
