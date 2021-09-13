@@ -10,7 +10,19 @@ const Test = () => {
       radius="xs"
       fontSize="2xs"
       mt="121"
+      hello={22}
+      size="12"
+      flex={1}
       color="red.200"
+      _focus={{
+        mt: "121",
+        _focus: {
+          ml: "121",
+        },
+        _web: {
+          mt: "11",
+        },
+      }}
     >
       <Text fontSize="md1" mt="222">
         Hello World
