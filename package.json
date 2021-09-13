@@ -1,6 +1,6 @@
 {
   "name": "native-base-upgrade",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "main": "index.js",
   "bin": "index.js",
   "author": "Aditya Jamuar",
