@@ -8,10 +8,13 @@ const Test = () => {
       lineHeight="12"
       letterSpacing="2xs"
       radius="xs"
-      fontSizes="2xs"
+      fontSize="2xs"
+      mt="121"
       color="red.200"
     >
-      Hello World
+      <Text fontSize="md1" mt="222">
+        Hello World
+      </Text>
     </Box>
   );
 };

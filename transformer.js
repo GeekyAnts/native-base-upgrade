@@ -1,4 +1,4 @@
-import config from "./config.json";
+const { config } = require("./config");
 const { setDirtyFile } = require("./utils");
 
 export default (fileInfo, api) => {
@@ -17,34 +17,40 @@ export default (fileInfo, api) => {
     .replaceWith((nodePath) => {
       const { node } = nodePath;
 
-      if (config[node.name.name]) {
-        let propNode = config[node.name.name];
+      // if (config[node.name.name]) {
+      let propNode = config[node.name.name];
 
-        let nodeValue = node.value;
-        let nodeValueType = node.value.type;
+      let nodeValue = node.value;
+      let nodeValueType = node.value.type;
 
-        if (node.value.type === "JSXExpressionContainer") {
-          nodeValue = node.value.expression;
-          nodeValueType = node.value.expression.type;
-        }
-
-        let transformedValue;
-
-        if (
-          nodeValueType === "NumericLiteral" ||
-          nodeValueType === "StringLiteral"
-        ) {
-          if (propNode["valueMap"] && propNode["valueMap"][nodeValue.value]) {
-            transformedValue = propNode["valueMap"][nodeValue.value];
-          } else {
-            transformedValue = String(nodeValue.value);
-          }
-
-          const newNode = j.stringLiteral(transformedValue);
-          node.value = newNode;
-          setDirtyFile(fileInfo);
-        }
+      if (node.value.type === "JSXExpressionContainer") {
+        nodeValue = node.value.expression;
+        nodeValueType = node.value.expression.type;
       }
+
+      let transformedValue;
+
+      if (
+        nodeValueType === "NumericLiteral" ||
+        nodeValueType === "StringLiteral"
+      ) {
+        if (
+          propNode &&
+          propNode["valueMap"] &&
+          propNode["valueMap"][nodeValue.value]
+        ) {
+          transformedValue = propNode["valueMap"][nodeValue.value];
+        } else {
+          // console.log(nodeValueType, nodeValue.value);
+
+          transformedValue = String(nodeValue.value);
+        }
+
+        const newNode = j.stringLiteral(transformedValue);
+        node.value = newNode;
+        setDirtyFile(fileInfo);
+      }
+      // }
 
       return node;
     })
